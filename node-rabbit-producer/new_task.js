@@ -10,14 +10,13 @@ amqp.connect('amqp://localhost', function (connectionError, connection) {
 			throw channelCreationError;
 		}
 
-		const queue = 'hello';
-		const msg = 'Hello world! I am a producer';
+		const queue = 'task_queue';
+		const msg = process.argv.slice(2).join(' ') || 'Hello World!';
 
-		channel.assertQueue(queue, {
-			durable: false,
-		});
+		channel.assertQueue('task_queue', { durable: true });
+		channel.prefetch(1);
 
-		channel.sendToQueue(queue, Buffer.from(msg));
+		channel.sendToQueue(queue, Buffer.from(msg), { persistent: true });
 		console.log(` [x] Sent ${msg}`);
 
 		setTimeout(function () {

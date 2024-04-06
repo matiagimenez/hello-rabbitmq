@@ -10,11 +10,9 @@ amqp.connect('amqp://localhost', function (connectionError, connection) {
 			throw channelCreationError;
 		}
 
-		const queue = 'hello';
+		const queue = 'task_queue';
 
-		channel.assertQueue(queue, {
-			durable: false,
-		});
+		channel.assertQueue('task_queue', { durable: true });
 
 		console.log(
 			` [*] Waiting for messages in ${queue}. To exit press CTRL+C`
@@ -23,10 +21,17 @@ amqp.connect('amqp://localhost', function (connectionError, connection) {
 		channel.consume(
 			queue,
 			function (msg) {
+				const secs = msg.content.toString().split('.').length - 1;
+
 				console.log(` [x] Received ${msg.content.toString()}`);
+
+				setTimeout(function () {
+					console.log(' [x] Done');
+					channel.ack(msg);
+				}, secs * 1000);
 			},
 			{
-				noAck: true,
+				noAck: false,
 			}
 		);
 	});
